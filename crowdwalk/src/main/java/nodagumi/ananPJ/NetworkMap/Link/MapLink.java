@@ -509,7 +509,7 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
 
     //============================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    static public double dWidth = 1.0 ;
+    static public double dWidth = 1.0;
 
     //------------------------------------------------------------
     /**
@@ -519,9 +519,11 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
      * 1 以下にはしない。
      */
     public int getLaneWidth(Direction dir) {
-        int d = getLane(dir).size() ;
-        int lane_width = (int)(d * (width / dWidth) / (forwardLane.size() +
-                    backwardLane.size()));
+        int d = Math.min(getLane(dir).size(), (int)(width * dWidth));
+        int forwardColumn = Math.min(forwardLane.size(), (int)(width * dWidth));
+        int backwardColumn = Math.min(backwardLane.size(), (int)(width * dWidth));
+
+        int lane_width = (int)(d * width / (forwardColumn + backwardColumn));
         if (lane_width == 0) {
             lane_width = 1;
         }
