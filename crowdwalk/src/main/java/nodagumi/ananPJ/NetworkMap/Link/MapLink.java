@@ -509,7 +509,7 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
 
     //============================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    static public double dWidth = 1.0;
+    static public double dWidth = 2.0;
 
     //------------------------------------------------------------
     /**
@@ -518,16 +518,40 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
      * 比例して、元の width から割り振られる。
      * 1 以下にはしない。
      */
+     /* [2021.12.03 S.Takami] 対交流の人数に影響されすぎるため計算方法を調節．
+      * dWidthを十分に大きい値にした場合，従来の処理と同様になる．
+      * とりあえずdWidthは2.0にした．(1.0だと小さすぎる)
+      * もしかしたらmaxSightSizeはレーンの長さぐらいが良いのかもしれない．
+      * widthが奇数の場合は使われないレーンが1本，高確率で発生するため
+      * 全体のサイズで調節する処理を入れた．
+      * widthを奇数にしなければいいため冗長な書き方になっているかもしれない．
+      */
     public int getLaneWidth(Direction dir) {
-        int d = Math.min(getLane(dir).size(), (int)(width * dWidth));
-        int forwardColumn = Math.min(forwardLane.size(), (int)(width * dWidth));
-        int backwardColumn = Math.min(backwardLane.size(), (int)(width * dWidth));
+        int maxSightSize = (int)(width * dWidth);
+        int d = Math.min(getLane(dir).size(), maxSightSize);
+        int forward = Math.min(forwardLane.size(), maxSightSize);
+        int backward = Math.min(backwardLane.size(), maxSightSize);
 
-        int lane_width = (int)(d * width / (forwardColumn + backwardColumn));
-        if (lane_width == 0) {
-            lane_width = 1;
+        int laneWidth = (int)(d * width / (forward + backward));
+        if (laneWidth == 0) {
+            laneWidth = 1;
         }
-        return lane_width ;
+
+        if (width % 2 != 0) {
+            if (d == forward && forwardLane.size() > backwardLane.size()) {
+                int backwardWidth = (int)(backward * width / (forward + backward));
+                if ((laneWidth + backwardWidth) < width) {
+                    laneWidth += 1;
+                }
+            } else if (d == backward && backwardLane.size() > forwardLane.size()) {
+                int forwardWidth = (int)(forward * width / (forward + backward));
+                if ((laneWidth + forwardWidth) < width) {
+                    laneWidth += 1;
+                }
+            }
+        }
+
+        return laneWidth ;
     }
 
     //------------------------------------------------------------
