@@ -114,6 +114,10 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
             SetupFileInfo.fetchFallbackTerm(fallbackParameters,
                                             "emptySpeedRestrictRule",
                                             Term.newArrayTerm()) ;
+        laneShareDiffuser =
+            SetupFileInfo.fetchFallbackDouble(fallbackParameters,
+                                            "laneShareDiffuser",
+                                            1.0) ;
     } ;
 
     //============================================================
@@ -166,6 +170,16 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
      * </pre>
      */
     public static Term emptySpeedRestrictRule = null ;
+
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    /**
+     * 対交流とのレーンの共有度(エージェントの認識可能最大数)を決める変数
+     * 最大数は(レーン内のエージェント数)の(入力した値の逆数)乗となる．
+     * fallback の "link"/"laneShareDiffuser" に記述する。
+     * Double 型 で格納される。
+     */
+    public static Double laneShareDiffuser = null ;
 
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     /**
@@ -509,49 +523,31 @@ public class MapLink extends OBMapPart implements Comparable<MapLink> {
 
     //============================================================
     //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    static public double dWidth = 2.0;
+    static public double dWidth = 1.0 ;
 
     //------------------------------------------------------------
     /**
      * リンクのレーンの幅。
-     * レーンの幅は、forward/backward のレーンに存在するエージェント数に
+     * レーンの幅は、forward/backward のレーンに存在し，
+     * 視野(認識可能最大数)に入っているエージェント数に
      * 比例して、元の width から割り振られる。
-     * 1 以下にはしない。
+     * この際，視野はfallbackのlink/laneShareDiffuserにより調節される．
+     * laneShareDiffuserを1.0にした場合，レーン上すべてが視野に入る．
+     * 算出される幅は，1 以下にはしない。
      */
-     /* [2021.12.03 S.Takami] 対交流の人数に影響されすぎるため計算方法を調節．
-      * dWidthを十分に大きい値にした場合，従来の処理と同様になる．
-      * とりあえずdWidthは2.0にした．(1.0だと小さすぎる)
-      * もしかしたらmaxSightSizeはレーンの長さぐらいが良いのかもしれない．
-      * widthが奇数の場合は使われないレーンが1本，高確率で発生するため
-      * 全体のサイズで調節する処理を入れた．
-      * widthを奇数にしなければいいため冗長な書き方になっているかもしれない．
-      */
     public int getLaneWidth(Direction dir) {
-        int maxSightSize = (int)(width * dWidth);
+        int maxSightSize
+          = (int)Math.pow(forwardLane.size() + backwardLane.size(),
+              1.0 / laneShareDiffuser);
         int d = Math.min(getLane(dir).size(), maxSightSize);
         int forward = Math.min(forwardLane.size(), maxSightSize);
         int backward = Math.min(backwardLane.size(), maxSightSize);
+        int laneWidth = (int)(d * (width / dWidth) / (forward + backward));
 
-        int laneWidth = (int)(d * width / (forward + backward));
         if (laneWidth == 0) {
             laneWidth = 1;
         }
-
-        if (width % 2 != 0) {
-            if (d == forward && forwardLane.size() > backwardLane.size()) {
-                int backwardWidth = (int)(backward * width / (forward + backward));
-                if ((laneWidth + backwardWidth) < width) {
-                    laneWidth += 1;
-                }
-            } else if (d == backward && backwardLane.size() > forwardLane.size()) {
-                int forwardWidth = (int)(forward * width / (forward + backward));
-                if ((laneWidth + forwardWidth) < width) {
-                    laneWidth += 1;
-                }
-            }
-        }
-
-        return laneWidth ;
+        return laneWidth;
     }
 
     //------------------------------------------------------------

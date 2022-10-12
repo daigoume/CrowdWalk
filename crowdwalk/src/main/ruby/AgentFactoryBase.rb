@@ -84,6 +84,8 @@
 ##    
 ##    end # class SampleWrapper
 
+require 'ItkTerm.rb' ;
+
 class AgentFactoryBase
   #--@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   #++
@@ -225,6 +227,22 @@ class AgentFactoryBase
   
   #--------------------------------------------------------------
   #++
+  ## simulator object (Java) を取得。
+  ## *return* :: simulator
+  def getSimulator()
+    return @javaFactory.getSimulator() ;
+  end
+  
+  #--------------------------------------------------------------
+  #++
+  ## scenario object (Java) を取得。
+  ## *return* :: scenario
+  def getScenario()
+    return getSimulator().getScenario() ;
+  end
+  
+  #--------------------------------------------------------------
+  #++
   ## tag で指定されたリンクの取得。
   ## _tag_ :: tag を表す Term。 makeSymbolTerm() で作成されるべき。
   ## *return* :: リンクのリスト(MapLinkTable)
@@ -248,10 +266,14 @@ class AgentFactoryBase
   ## _startPlace_ :: 出発地点(MapLink or MapNode)
   ## _goalTag_ :: ゴールタグ (Term)
   ## _route_ :: 経由点。Term の配列。
+  ## _fallback_ :: agent に渡すパラメータ。ハッシュ。
   def launchAgentWithRoute(agentClassName, startPlace,
-                           goalTag, route)
+                           goalTag, route, fallback = nil)
+    if(!fallback.nil?) then
+      fallback = ItkTerm.ensureTerm(fallback) ;
+    end
     return @javaFactory.launchAgentWithRoute(agentClassName, startPlace,
-                                             goalTag, route) ;
+                                             goalTag, route, fallback) ;
   end
 
   #--------------------------------------------------------------

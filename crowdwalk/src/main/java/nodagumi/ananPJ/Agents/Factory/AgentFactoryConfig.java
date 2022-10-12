@@ -315,7 +315,7 @@ public class AgentFactoryConfig {
 	if(_ruleName != null) { ruleName = _ruleName ; }
 
 	// agentType & className ;
-	Term agentType = json.getArgTerm("agentType") ;
+	Term agentType = json.getArgTerm("config").getArgTerm("agentType") ;
 	agentClassName = agentType.getArgString("className") ;
 	agentConf = agentType ;
 
@@ -767,6 +767,17 @@ public class AgentFactoryConfig {
         public AgentFactoryConfig scanJson(AgentFactoryList factoryList,
 					   Term json,
 					   NetworkMap map) {
+
+            // [2022.10.03 I.Noda]
+            // add to fix problem of ruby factory
+            AgentFactoryConfig r = super.scanJson(factoryList, json, map) ;
+
+            // [2022.10.03 I.Noda]
+            // ruby factory の場合は、null でもよい。
+            //            if(r == null) {
+            //                return null ;
+            //            }
+            
             ruleClass = json.getArgString("ruleClass") ;
             config = json.getArgTerm("config") ;
 

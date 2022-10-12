@@ -315,6 +315,11 @@ run3gt02ds ::
 	(cd $(BASEDIR) ; bash quickstart.sh $(SAMPLE3gt02ds))
 
 ##-----
+SAMPLE3gt02rr = sample/generatedTown/gridTown02rr.prop.json   # ruby factory/agent
+run3gt02rr ::
+	(cd $(BASEDIR) ; bash quickstart.sh $(SAMPLE3gt02rr))
+
+##-----
 SAMPLE3gt03 = sample/generatedTown/gridTown03.prop.json   # ruby gate
 run3gt03 ::
 	(cd $(BASEDIR) ; bash quickstart.sh $(SAMPLE3gt03))
@@ -393,6 +398,11 @@ run5loop0 ::
 SAMPLE_G4 = sample/generatedTown/gridTown04.prop.json   # directed restricted speed rules
 runG4 ::
 	(cd $(BASEDIR) ; cd `dirname $(SAMPLE_G4)` ; time -p bash ../../quickstart.sh --log-level Info `basename $(SAMPLE_G4)`)
+
+##-----
+SAMPLE_G5 = sample/generatedTown/gridTown05.prop.json   # ruby color model
+runG5 ::
+	(cd $(BASEDIR) ; cd `dirname $(SAMPLE_G5)` ; time -p bash ../../quickstart.sh --log-level Info `basename $(SAMPLE_G5)`)
 
 
 
