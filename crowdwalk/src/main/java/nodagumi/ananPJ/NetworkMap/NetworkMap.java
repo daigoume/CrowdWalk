@@ -21,6 +21,9 @@ import java.util.Collection ;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.Enumeration;
 
@@ -753,21 +756,27 @@ public class NetworkMap extends DefaultTreeModel {
      * @return 探索成功した結果。すでにノードには情報は格納されている。
      */
     public boolean calcGoalPathAll(String goalTag) {
-        boolean isSuccess = true ;
+        ArrayList<Future<Boolean>> futures = new ArrayList<>();
 
-        Dijkstra.Result result =
-            calcGoalPath(NavigationHint.DefaultMentalMode, goalTag) ;
-        isSuccess = (isSuccess && (result != null)) ;
+        futures.add(ForkJoinPool.commonPool().submit(()->
+                null != calcGoalPath(NavigationHint.DefaultMentalMode, goalTag)
+                ));
 
         if(hasMentalMapRules()) {
-            /* [2016.01.31 I.Noda] ここは並列化したほうが良いかもしれない。 */
             for(Term mentalMode : getMentalModeSet()) {
-                result = calcGoalPath(mentalMode, goalTag) ;
-                isSuccess = (isSuccess && (result != null)) ;
+                futures.add(ForkJoinPool.commonPool().submit(()->
+                        null != calcGoalPath(mentalMode, goalTag)
+                ));
             }
         }
 
-        return isSuccess ;
+        return futures.stream().allMatch(future -> {
+            try {
+                return future.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
     
     //------------------------------------------------------------
