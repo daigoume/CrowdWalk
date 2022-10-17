@@ -315,7 +315,7 @@ public class AgentFactoryConfig {
 	if(_ruleName != null) { ruleName = _ruleName ; }
 
 	// agentType & className ;
-	Term agentType = json.getArgTerm("config").getArgTerm("agentType") ;
+	Term agentType = json.getArgTerm("agentType") ;
 	agentClassName = agentType.getArgString("className") ;
 	agentConf = agentType ;
 
