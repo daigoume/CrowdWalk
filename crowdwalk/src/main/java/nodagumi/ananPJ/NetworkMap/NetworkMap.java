@@ -756,27 +756,28 @@ public class NetworkMap extends DefaultTreeModel {
      * @return 探索成功した結果。すでにノードには情報は格納されている。
      */
     public boolean calcGoalPathAll(String goalTag) {
-        ArrayList<Future<Boolean>> futures = new ArrayList<>();
+        if (getMentalModeSet() == null) {
+            return (null != calcGoalPath(NavigationHint.DefaultMentalMode, goalTag));
+        } else {
+            ArrayList<Future<Boolean>> futures = new ArrayList<>();
 
-        futures.add(ForkJoinPool.commonPool().submit(()->
-                null != calcGoalPath(NavigationHint.DefaultMentalMode, goalTag)
-                ));
+            futures.add(ForkJoinPool.commonPool().submit(()->
+                    null != calcGoalPath(NavigationHint.DefaultMentalMode, goalTag)
+            ));
 
-        if(hasMentalMapRules()) {
-            for(Term mentalMode : getMentalModeSet()) {
-                futures.add(ForkJoinPool.commonPool().submit(()->
-                        null != calcGoalPath(mentalMode, goalTag)
-                ));
+            if(hasMentalMapRules()) {
+                for(Term mentalMode : getMentalModeSet()) {
+                    futures.add(ForkJoinPool.commonPool().submit(()->
+                            null != calcGoalPath(mentalMode, goalTag)
+                    ));
+                }
             }
+
+            return futures.stream().allMatch(future -> {
+                try { return future.get(); }
+                catch (Exception e) { throw new RuntimeException(e); }
+            });
         }
-
-        return futures.stream().allMatch(future -> {
-            try {
-                return future.get();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
     }
     
     //------------------------------------------------------------
