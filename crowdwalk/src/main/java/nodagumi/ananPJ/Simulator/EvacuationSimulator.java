@@ -744,7 +744,20 @@ public class EvacuationSimulator {
             Thread thread = new Thread(worker);
             workers.put(goal_tag, worker);
             threads.put(goal_tag, thread);
-            thread.start();
+            //リソース不足でthreadが投げれない場合は1秒待ってリトライ
+            while (true) {
+                try {
+                    thread.start();
+                    break;
+                } catch (java.lang.OutOfMemoryError e) {
+                    System.out.println(e);
+                    try {
+                        Thread.sleep(1000);
+                    }  catch (InterruptedException ee) {
+                        continue;
+                    }
+                }
+            }
         }
         // スレッド終了を待ってno_goal_list更新
         try {
