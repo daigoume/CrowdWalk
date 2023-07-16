@@ -750,7 +750,9 @@ public class EvacuationSimulator {
                     thread.start();
                     break;
                 } catch (java.lang.OutOfMemoryError e) {
-                    System.out.println(e);
+                    Itk.logInfo("OutOfMemoryError",
+                        "Waiting for resources.");
+                    //System.out.println(e); //生のエラー見たい人用に残した
                     try {
                         Thread.sleep(1000);
                     }  catch (InterruptedException ee) {
